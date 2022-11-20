@@ -5,6 +5,7 @@ import (
 	"log"
 	"fmt"
 	"time"
+	"flag"
 	"os/exec"
 	"encoding/csv"
 )
@@ -16,7 +17,11 @@ type problem struct {
 
 func main() { 
 	
-	file, err := os.Open("problems.csv")
+	timeLimit := flag.Int("t", 120, "quiz time limit")
+	filename := flag.String("f", "problems.csv", "file path") 
+	flag.Parse() 
+
+	file, err := os.Open(*filename)
 	if err != nil { 
 		log.Fatal(err)
 	}
@@ -28,8 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	timeLimit := 3
-	timer := time.NewTimer(time.Duration(timeLimit) * time.Second)
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
 	problems :=  getProblems(records)
 	score := 0
 
