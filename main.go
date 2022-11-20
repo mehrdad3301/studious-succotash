@@ -8,11 +8,10 @@ import (
 	"encoding/csv"
 )
 
-var ( 
-	q_number = 0 
-	score = 0
-	ans string
-)
+type problem struct { 
+	question string 
+	answer   string 
+}
 
 func main() { 
 	
@@ -23,13 +22,26 @@ func main() {
 
 	reader := csv.NewReader(file)
 
-	record, _ := reader.Read()
-	for record != nil{ 
-		clearScreen() 
-		askQuestion(record[0], record[1])
-		record, _ = reader.Read()
+	records, err := reader.ReadAll()
+	if err != nil { 
+		log.Fatal(err)
 	}
-	fmt.Printf("you scored %d", score) 
+
+	problems :=  getProblems(records)
+	
+	score := 0
+	for i, problem := range problems { 
+
+		clearScreen() 
+		fmt.Printf("Q %d: %s? ", i, problem.question)
+		
+		var ans string 
+		fmt.Scan(&ans)
+
+		if ans == problem.answer{ 
+			score += 1 
+		}
+	}
 }
 
 
@@ -39,13 +51,12 @@ func clearScreen() {
 	cmd.Run()	
 }
 
-func askQuestion(question, answer string) { 
+func getProblems(records [][]string) []problem { 
 
-		fmt.Printf("question: %d \n what is %s? ", q_number, question)
-
-		fmt.Scan(&ans)
-		if ans == answer { 
-			score += 1 
-		}
-		q_number += 1 
+	problems := make([]problem, len(records)) 
+	for i, v := range records { 
+		problems[i] = problem { v[0], v[1] } 		
+	}	
+	return problems
 }
+
