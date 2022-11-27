@@ -1,0 +1,16 @@
+
+<html> 
+
+	<body> 
+		<h1> {{ .Title }} </h1>
+		{{ range .Paragraphs }} 
+			<p> {{ . }} </p>
+		{{ end }} 
+		
+		{{ range .Options }} 
+		<a href=""> {{ .Text }} </a> </br>
+		{{ end }}
+	</body>
+
+</html> 
+
