@@ -45,6 +45,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path[1:]
 	if path != "" { 
 		storyTemp.Execute(w, stories[path])
+	} else {
+		http.Redirect(w, r, "/intro", http.StatusFound)
 	}
-	http.Redirect(w, r, "/intro", http.StatusFound)
 }
