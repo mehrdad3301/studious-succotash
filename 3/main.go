@@ -1,10 +1,10 @@
 package main 
 
 import ( 
-	_ "net/http"
+	"net/http"
+	"html/template"
 	"encoding/json"
 	"os"
-	"fmt"
 )
 
 
@@ -15,23 +15,36 @@ type Story struct {
 	Options    []Option`json:"options"`
 }
 
-/* 
-	- marshalling 
-	- template TODO 
-	- http handlers TODO 	
-*/
-
 type Option struct { 
 
 	Text string `json:"text"`
 	Arc  string `json:"arc"`
 }
 
-var stories = make(map[string]Story) 
+var (
+
+	stories map[string]Story 
+	storyTemp *template.Template
+)
+	
+func init() { 
+	stories = make(map[string]Story) 
+	storyTemp, _ = template.ParseFiles("temp.html")
+}
 
 func main() { 
 	
 	file, _ := os.ReadFile("gopher.json")
 	json.Unmarshal(file, &stories)	
+	http.HandleFunc("/", handler)
 	
+	http.ListenAndServe("localhost:8080", nil) 
 } 
+
+func handler(w http.ResponseWriter, r *http.Request) { 
+	path := r.URL.Path[1:]
+	if path != "" { 
+		storyTemp.Execute(w, stories[path])
+	}
+	http.Redirect(w, r, "/intro", http.StatusFound)
+}
