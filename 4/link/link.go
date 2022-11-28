@@ -11,11 +11,11 @@ type Link struct {
 	Text string 
 }
 
-func Parse(r io.Reader) []Link{ 
+func Parse(r io.Reader) ([]Link, err){ 
 
 	root, err := html.Parse(r)
 	if err != nil { 
-		panic(err)
+		return nil, err
 	}
 
 	linkNodes := getLinks(root)
@@ -24,7 +24,7 @@ func Parse(r io.Reader) []Link{
 	for _, node := range linkNodes { 
 		links = append(links, buildLink(node))
 	}
-	return links
+	return links, nil
 }
 
 func buildLink(n *html.Node) Link { 
