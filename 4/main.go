@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"flag"
+	"strings"
 	"golang.org/x/net/html"
 )
 
@@ -13,12 +14,13 @@ type Link struct {
 }
 
 func GetLinks(n *html.Node, links *[]Link) { 
-	
+
 	if n.Type == html.ElementNode { 
 		if n.Data == "a" { 
-			l := Link{ Href: getHref(n.Attr) } 
+			l := Link{ Href: getHref(n.Attr), 	
+					   Text: getText(n)     }
 			*links = append(*links, l)
-			return 
+			return  
 		}
 	}
 
@@ -36,6 +38,20 @@ func getHref(attr []html.Attribute) string {
 	return ""
 }
 
+func getText(n *html.Node) string { 
+
+	var texts []string
+
+	if n.Type == html.TextNode { 
+		return n.Data
+	}
+
+	for c := n.FirstChild ; c != nil ; c = c.NextSibling { 
+		texts = append(texts, getText(c))
+	}
+	return strings.Join(texts, "")
+}
+
 func main() { 
 	
 	name := flag.String("n", "ex1.html", "html file name")
@@ -50,4 +66,6 @@ func main() {
 	var links []Link
 	GetLinks(r, &links)	
 	fmt.Println(links)
+ 
+ 	
 }
