@@ -18,7 +18,7 @@ func Parse(r io.Reader) []Link{
 		panic(err)
 	}
 
-	linkNodes = getLinks(root)
+	linkNodes := getLinks(root)
 	
 	var links []Link
 	for _, node := range linkNodes { 
@@ -37,11 +37,11 @@ func getLinks(n *html.Node) []*html.Node {
 	var links []*html.Node
 	
 	if n.Type == html.ElementNode && n.Data == "a" { 
-		return  n 
+		return []*html.Node{n} 
 	}
 
 	for c := n.FirstChild ; c != nil ; c = c.NextSibling { 
-		links = append(links, getLinks(c))
+		links = append(links, getLinks(c)...)
 	}
 
 	return links
