@@ -16,5 +16,6 @@ func main() {
 	if err != nil { 
 		fmt.Println(err)
 	}
-	link.Parse(file)
+	links, _ := link.Parse(file)
+	fmt.Println(links)
 }

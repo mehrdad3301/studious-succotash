@@ -58,7 +58,6 @@ func getHref(n *html.Node) string {
 
 func getText(n *html.Node) string { 
 
-
 	var sb strings.Builder 
 	if n.Type == html.TextNode { 
 		return n.Data
