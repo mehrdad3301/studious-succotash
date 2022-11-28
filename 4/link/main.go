@@ -1,9 +1,7 @@
 package link
 
 import ( 
-	"os"
 	"io"
-	"flag"
 	"strings"
 	"golang.org/x/net/html"
 )
@@ -15,6 +13,7 @@ type Link struct {
 
 func Parse(r io.Reader) []Link{ 
 
+	return nil 
 }
 
 func GetLinks(n *html.Node, links *[]Link) { 
