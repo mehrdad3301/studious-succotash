@@ -58,14 +58,14 @@ func getHref(n *html.Node) string {
 
 func getText(n *html.Node) string { 
 
-	var texts []string
 
+	var sb strings.Builder 
 	if n.Type == html.TextNode { 
 		return n.Data
 	}
 
 	for c := n.FirstChild ; c != nil ; c = c.NextSibling { 
-		texts = append(texts, getText(c))
+		sb.WriteString(getText(c))
 	}
-	return strings.Join(texts, "")
+	return strings.Join(strings.Fields(sb), " ")
 }
