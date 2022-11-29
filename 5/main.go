@@ -11,12 +11,15 @@ import (
 
 func main() { 
 
-	domain := flag.String("u", "https://www.calhoun.io/", "domain") 
+	domain := flag.String("u", "https://www.calhoun.io", "domain") 
 	flag.Parse() 
 
 	urls, _ := getLinks(*domain)
 	fmt.Println(urls)
-	fmt.Println(filterUrls(*domain, urls))
+	fmt.Println("_______________")
+	urls = filterUrls(*domain, urls)
+	fmt.Println(urls)
+	
 }
 
 
@@ -45,12 +48,36 @@ func filterUrls(domain string, urls []string) ([]string) {
 
 	var f []string 
 	for _, u := range urls { 
-		if strings.HasPrefix(u, "/") || 
-		   strings.HasPrefix(u, domain) { 
-
+		if strings.HasPrefix(u, "/") { 
+			u = domain + u 
+		}
+		if strings.HasPrefix(u, domain) { 
 			f = append(f, u)
 		}
 	}
 	return f
 }
+
+
+//func bfs(domain string) map[string]struct{} { 
+//
+//	var queue []string 
+//	visited := make(map[string]struct{})
+//	
+//	queue = append(queue, domain) 
+//
+//	for len(queue) != 0 { 
+//
+//		url := queue[0] 
+//		queue = queue[1:] 
+//		
+//		visited[url] = nil 
+//		
+//		
+//
+//	}	
+//
+//	return struct{}
+//
+//} 
 
