@@ -11,14 +11,14 @@ import (
 
 func main() { 
 
-	domain := flag.String("u", "https://www.calhoun.io", "domain") 
+	domain := flag.String("u","https://www.calhoun.io", "domain") 
 	flag.Parse() 
-
-	urls, _ := getLinks(*domain)
-	fmt.Println(urls)
-	fmt.Println("_______________")
-	urls = filterUrls(*domain, urls)
-	fmt.Println(urls)
+	
+	m, err := bfs(*domain)
+	if err != nil { 
+		fmt.Println(err)
+	}
+	fmt.Printf("%+v", m)
 	
 }
 
@@ -30,6 +30,7 @@ func getLinks(domain string) ([]string, error) {
 		return nil, err
 	}
 
+	defer resp.Body.Close() 
 	links, err := link.Parse(resp.Body)
 	if err != nil { 
 		return nil, err
@@ -51,33 +52,51 @@ func filterUrls(domain string, urls []string) ([]string) {
 		if strings.HasPrefix(u, "/") { 
 			u = domain + u 
 		}
+
+		if strings.HasSuffix(u, "/") { 
+			u = u[:len(u)-1]
+		}
+
 		if strings.HasPrefix(u, domain) { 
 			f = append(f, u)
 		}
 	}
 	return f
-}
+} 
 
+func bfs(domain string) (map[string]bool, error) { 
 
-//func bfs(domain string) map[string]struct{} { 
-//
-//	var queue []string 
-//	visited := make(map[string]struct{})
-//	
-//	queue = append(queue, domain) 
-//
-//	for len(queue) != 0 { 
-//
-//		url := queue[0] 
-//		queue = queue[1:] 
-//		
-//		visited[url] = nil 
-//		
-//		
-//
-//	}	
-//
-//	return struct{}
-//
-//} 
+	var queue []string 
+	visited := make(map[string]bool)
+	
+	queue = append(queue, domain) 
+
+	for len(queue) != 0 { 
+
+		url := queue[0] 
+		queue = queue[1:] 
+		
+		if visited[url] == true { 
+			continue 
+		}
+
+		visited[url] = true 
+		
+		links, err := getLinks(url) 	
+		if err != nil { 
+			return nil, err
+		}
+
+		links = filterUrls(domain, links) 
+		fmt.Println(url)
+		
+		for _, l := range links { 
+			if _, ok := visited[l] ; !ok { 
+				queue = append(queue, l)
+			}
+		}
+	}	
+
+	return visited, nil
+} 
 
