@@ -1,102 +1,115 @@
 package main 
 
 import ( 
+	"io"
 	"fmt"
 	"flag"
 	"strings"
 	"net/http"
+	"net/url"
 	"github.com/mehrdad3301/studious-succotash/4/link"
 ) 
 
 
 func main() { 
 
-	domain := flag.String("u","https://www.calhoun.io", "domain") 
+	domain := flag.String("u","https://www.calhoun.io/", "domain") 
 	flag.Parse() 
 	
-	m, err := bfs(*domain)
-	if err != nil { 
-		fmt.Println(err)
-	}
-	fmt.Printf("%+v", m)
-	
+	fmt.Printf("%+v", bfs(*domain, 2))	
 }
 
 
-func getLinks(domain string) ([]string, error) { 
+func get(domain string) []string { 
 
 	resp, err := http.Get(domain)
 	if err != nil { 
-		return nil, err
+		return []string{}
 	}
 
 	defer resp.Body.Close() 
-	links, err := link.Parse(resp.Body)
-	if err != nil { 
-		return nil, err
+
+	reqURL := resp.Request.URL 
+	baseURL := &url.URL { 
+		Scheme: reqURL.Scheme, 
+		Host :  reqURL.Host,
 	}
 	
-	urls := make([]string, len(links))
-	for i, link := range links { 
-		urls[i] = link.Href
-	}
-
-	return urls, nil 
+	base := baseURL.String()
+	return filter(hrefs(resp.Body, base), withPrefix(base))
 }
 
+func hrefs(r io.Reader, base string) []string {
 
-func filterUrls(domain string, urls []string) ([]string) { 
-
-	var f []string 
-	for _, u := range urls { 
-		if strings.HasPrefix(u, "/") { 
-			u = domain + u 
-		}
-
-		if strings.HasSuffix(u, "/") { 
-			u = u[:len(u)-1]
-		}
-
-		if strings.HasPrefix(u, domain) { 
-			f = append(f, u)
+	links, err := link.Parse(r)
+	if err != nil { 
+		return []string{}
+	}
+	
+	urls := make([]string, 0, len(links))
+	for _, l := range links { 
+		switch {
+		case strings.HasPrefix(l.Href, "/"):
+			urls = append(urls, base + l.Href)
+		case strings.HasPrefix(l.Href, "http") :
+			urls = append(urls, l.Href)
 		}
 	}
-	return f
+	return urls 
+}
+
+func filter(links []string, filterFn func(string) bool) ([]string) { 
+
+	var ret []string 
+	for _, u := range links { 
+		if filterFn(u) { 
+			ret = append(ret, u)
+		}
+	}
+	return ret
 } 
 
-func bfs(domain string) (map[string]bool, error) { 
 
-	var queue []string 
-	visited := make(map[string]bool)
-	
-	queue = append(queue, domain) 
+func withPrefix(prefix string) func(string) bool { 
+	return func (link string) bool {
+		return strings.HasPrefix(link, prefix) 
+	}
+}
 
-	for len(queue) != 0 { 
+func bfs(domain string, depth int) ([]string) { 
 
-		url := queue[0] 
-		queue = queue[1:] 
-		
-		if visited[url] == true { 
-			continue 
+	seen := make(map[string]struct{})
+
+	var q map[string]struct{} 
+	nq := map[string]struct{}{ 
+		domain: struct{}{}, 
+	}
+
+	for i := 0 ; i < depth ; i++ { 
+
+		q, nq = nq, make(map[string]struct{})
+		if len(q) == 0 { 
+			break 
 		}
 
-		visited[url] = true 
-		
-		links, err := getLinks(url) 	
-		if err != nil { 
-			return nil, err
-		}
+		for url, _ := range q { 
 
-		links = filterUrls(domain, links) 
-		fmt.Println(url)
-		
-		for _, l := range links { 
-			if _, ok := visited[l] ; !ok { 
-				queue = append(queue, l)
+			if _, ok := seen[url] ; ok { 
+				continue 
+			}
+
+			seen[url] = struct{}{}
+			for _, link := range get(url) { 
+				nq[link] = struct{}{}
 			}
 		}
-	}	
+		
+	}
 
-	return visited, nil
+	ret := make([]string, 0, len(seen)) 
+	for k, _ := range seen { 
+		ret = append(ret, k)
+	}	
+	return ret 
 } 
 
