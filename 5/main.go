@@ -13,10 +13,11 @@ import (
 
 func main() { 
 
-	domain := flag.String("u","https://www.calhoun.io/", "domain") 
+	url := flag.String("-url","https://www.calhoun.io/", "url to build sitemap from") 
+	depth := flag.Int("-depth", 2, "depth limit for following links"
 	flag.Parse() 
 	
-	fmt.Printf("%+v", bfs(*domain, 2))	
+	fmt.Printf("%+v", bfs(*url, *depth))	
 }
 
 
