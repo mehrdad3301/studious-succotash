@@ -14,7 +14,7 @@ import (
 func main() { 
 
 	url := flag.String("-url","https://www.calhoun.io/", "url to build sitemap from") 
-	depth := flag.Int("-depth", 2, "depth limit for following links"
+	depth := flag.Int("-depth", 2, "depth limit for following links")
 	flag.Parse() 
 	
 	fmt.Printf("%+v", bfs(*url, *depth))	
