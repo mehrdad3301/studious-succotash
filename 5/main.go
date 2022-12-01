@@ -2,22 +2,48 @@ package main
 
 import ( 
 	"io"
+	"os"
 	"fmt"
 	"flag"
 	"strings"
-	"net/http"
 	"net/url"
+	"net/http"
+	"encoding/xml"
 	"github.com/mehrdad3301/studious-succotash/4/link"
 ) 
 
 
+var xlmns = "https://www.sitemaps.org/schemas/sitemap/0.9/"
+
+type loc struct { 
+	Value string `xml:"loc"`
+}
+type urlset struct { 
+	Urls  []loc `xml:"url"`
+	Xlmns string `xml:"xlmns,attr"`
+}
+
 func main() { 
 
-	url := flag.String("-url","https://www.calhoun.io/", "url to build sitemap from") 
-	depth := flag.Int("-depth", 2, "depth limit for following links")
+	url := flag.String("url","https://www.calhoun.io/", "url to build sitemap from") 
+	depth := flag.Int("depth", 2, "depth limit for following links")
 	flag.Parse() 
-	
-	fmt.Printf("%+v", bfs(*url, *depth))	
+
+	links := bfs(*url, *depth)
+	uSet := buildUrlSet(links)
+	b, _:= xml.MarshalIndent(uSet, "", "\t")
+	fmt.Fprintf(os.Stdout, xml.Header + string(b))
+}
+
+func buildUrlSet(links []string) urlset { 
+
+	u := urlset{Urls: make([]loc, 0, len(links)), Xlmns: xlmns}	
+
+	for _, l := range links { 
+		u.Urls = append(u.Urls, loc{l})	
+	}
+
+	return u 
 }
 
 
